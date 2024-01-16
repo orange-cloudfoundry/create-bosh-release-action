@@ -17,6 +17,9 @@ inputs:
   dir:
     description: "Release directory path if not current working directory (default: .)"
     default: "."
+  debug:
+    description: "Set to 1 to enable debug mode"
+    default: 0
 outputs:
   file:
     description: "generated bosh release filename"

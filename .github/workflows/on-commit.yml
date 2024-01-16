@@ -38,8 +38,12 @@ jobs:
           dir: create-bosh-release-action-test-boshrelease
       - name: Cleanup generated test files
         run: |
-          echo ""
-          git --git-dir=create-bosh-release-action-test-boshrelease clean -fdx
+          ls -lrt
+          cd create-bosh-release-action-test-boshrelease
+          git status
+          echo "Cleanup generated files"
+          git clean -fdx
+          cd ..
       - name: Test final release
         id: test_final_release
         uses: ./create-bosh-release-action/ # uses: ./.github/actions/my-private-repo/my-action #https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-using-an-action-inside-a-different-private-repository-than-the-workflow

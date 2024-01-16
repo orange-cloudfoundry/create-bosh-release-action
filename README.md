@@ -25,6 +25,10 @@ Release directory path if not current working directory
 required: `false`
 default: `.`
 
+### `debug`
+Set to 1 to enable debug mode
+
+default: 0
 ## Outputs
 
 ### `file`

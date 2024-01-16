@@ -104,10 +104,10 @@ if [ "${release}" == "true" ]; then
   git tag -a -m "cutting release ${version}" ${version} $PUSH_OPTIONS
 
   git pull --rebase ${remote_repo}
-  if [ "${INPUT_OVERRIDE_EXISTING}" == "true" ] && git rev-parse "$version" >/dev/null 2>&1; then
-    # Delete any existing release with same tag. Ignore push failure if no tag exists.
-    git push --delete ${remote_repo} ${version}
-  fi
+#  if [ "${INPUT_OVERRIDE_EXISTING}" == "true" ] && git rev-parse "$version" >/dev/null 2>&1; then
+#    # Delete any existing release with same tag. Ignore push failure if no tag exists.
+#    git push --delete ${remote_repo} ${version}
+#  fi
 
   git push ${remote_repo} HEAD:${INPUT_TARGET_BRANCH} --follow-tags # Push branch and tag
 fi

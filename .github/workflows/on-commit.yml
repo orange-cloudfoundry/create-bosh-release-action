@@ -20,16 +20,16 @@ jobs:
           repository: 'orange-cloudfoundry/create-bosh-release-action-test-boshrelease'
           fetch-depth: 0
 #          ref: v1.0
-#          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-          path: ./create-bosh-release-action-test-boshrelease
+          token: ${{ secrets.CREATE_BOSH_RELEASE_ACTION_TEST_BOSHRELEASE_GIT_TOKEN }}
 
+          path: ./create-bosh-release-action-test-boshrelease
 #      - name: Setup tests
 #        id: setup_tests
 #        run: |
 #          du -a
 #          git config --global --add safe.directory /github/workspace/create-bosh-release-action-test-boshrelease
-#          git --no-pager config --global --list
 
+#          git --no-pager config --global --list
       - name: Test dev release
         id: test_dev_release
         uses: ./create-bosh-release-action/ # uses: ./.github/actions/my-private-repo/my-action #https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-using-an-action-inside-a-different-private-repository-than-the-workflow

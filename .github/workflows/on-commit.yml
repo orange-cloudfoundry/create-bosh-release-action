@@ -13,7 +13,11 @@ jobs:
         with:
           repository: 'orange-cloudfoundry/create-bosh-release-action-test-boshrelease'
           fetch-depth: 0
-
+      - name: debug
+        id: debug
+        run: |
+          pwd
+          ls -lrt
       - name: Test dev release
         id: test_dev_release
         uses: orange-cloudfoundry/create-bosh-release-action@master

@@ -15,6 +15,9 @@ elif [[ "$GITHUB_REF" == refs/pull/* ]]; then
   version=pr-${pull_number}
   release=false
 fi
+echo "Current dir: $PWD"
+echo "Current files:"
+ls -l
 
 if [[ "$DIR" != "." ]];then
   cd $DIR # We ensure we are in the right directory

@@ -35,6 +35,14 @@ default: 0
 
 Name of the generated release.
 
+### `version`
+
+version of the generated bosh release
+
+### `need_gh_release`
+
+Do we need to create a GitHub release associated to this bosh release
+
 ## Example usage
 
 ```
@@ -46,3 +54,5 @@ env:
   AWS_BOSH_ACCES_KEY_ID: ${{ secrets.AWS_BOSH_ACCES_KEY_ID }}
   AWS_BOSH_SECRET_ACCES_KEY: ${{ secrets.AWS_BOSH_SECRET_ACCES_KEY }}
 ```
+
+See [GitHub action for extra samples](./.github/workflows/on-commit.yml)

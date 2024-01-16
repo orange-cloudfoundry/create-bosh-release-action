@@ -61,6 +61,10 @@ git config --global --add safe.directory /github/workspace
 echo "*** Git global config ***"
 git --no-pager config --global --list
 
+# remove existing release if any, and prepare a commit that will be amended next
+# Having a single amended commit makes it easier to inspect last commit
+# See https://superuser.com/a/360986/299481 for details of the bash array syntax
+NEXT_GIT_COMMIT_FLAGS=(-m "cutting release ${version}")
 if [ "${release}" == "true" ]; then
   # remove existing release if any
   if [ -f releases/"${name}"/"${name}"-"${version}".yml ]; then
@@ -104,10 +108,10 @@ if [ "${release}" == "true" ]; then
   git tag -a -m "cutting release ${version}" ${version} $PUSH_OPTIONS
 
   git pull --rebase ${remote_repo}
-#  if [ "${INPUT_OVERRIDE_EXISTING}" == "true" ] && git rev-parse "$version" >/dev/null 2>&1; then
-#    # Delete any existing release with same tag. Ignore push failure if no tag exists.
-#    git push --delete ${remote_repo} ${version}
-#  fi
+  if [[ "${INPUT_OVERRIDE_EXISTING}" == "true" ]]; then
+    # Delete any existing release with same tag. Ignore push failure if no tag exists.
+    ! git push --delete ${remote_repo} ${version}
+  fi
 
   git push ${remote_repo} HEAD:${INPUT_TARGET_BRANCH} --follow-tags # Push branch and tag
 fi
@@ -123,4 +127,5 @@ chmod 644 ${name}-${version}.tgz
 # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#environment-files
 echo "file=${name}-${version}.tgz" >> $GITHUB_OUTPUT
 echo "version=${version}"          >> $GITHUB_OUTPUT
+echo "need_gh_release=${NEED_GITHUB_RELEASE}"   >> $GITHUB_OUTPUT
 

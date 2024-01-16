@@ -24,6 +24,7 @@ echo "  target_branch: $INPUT_TARGET_BRANCH"
 
 if [[ "$INPUT_DIR" != "." ]];then
   cd $INPUT_DIR # We ensure we are in the right directory
+  git config --global --add safe.directory /github/workspace/$INPUT_DIR
 fi
 
 echo "Current dir: $PWD"
@@ -47,7 +48,7 @@ remote_repo="https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@${GITHUB_SERVER_URL#https:/
 git config --global user.name "actions/bosh-packager@v2"
 git config --global user.email "<>"
 git config --global --add safe.directory /github/workspace
-git config --global --add safe.directory /github/workspace/create-bosh-release-action-test-boshrelease
+echo "*** Git global config ***"
 git --no-pager config --global --list
 
 if [ "${release}" == "true" ]; then

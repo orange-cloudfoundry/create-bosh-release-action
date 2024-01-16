@@ -36,13 +36,13 @@ jobs:
         with:
           target_branch: main
           dir: create-bosh-release-action-test-boshrelease
-      - name: Cleanup generated test files
+      - name: Generated test files status
         run: |
           ls -lrt
           cd create-bosh-release-action-test-boshrelease
           git status
-          echo "Cleanup generated files"
-          git clean -fdx
+          #echo "Cleanup generated files"
+          #git clean -fdx
           cd ..
       - name: Test final release
         id: test_final_release

@@ -6,11 +6,11 @@ inputs:
   repository:
     description: "Github repository used to publish releases."
     required: false
-    default: ${GITHUB_REPOSITORY}
+    default: ${{github.repository}}
   token:
     description: "Github token used to push changes after releasing"
     required: false
-    default: ${GITHUB_TOKEN}
+    default: ${{github.token}}
   target_branch:
     description: "Branch name to push release commit"
     required: false

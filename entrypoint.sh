@@ -35,7 +35,7 @@ if [ -n "$INPUT_TAG_NAME" ];then
 fi
 
 
-if [ $INPUT_DEBUG -ne 0 ];then
+if [ "$INPUT_DEBUG" -ne 0 ];then
   echo "Current files before release creation:"
   echo "Current files:"
   ls -l
@@ -92,7 +92,9 @@ fi
 
 if [ "${release}" == "true" ]; then
   echo "pushing changes to git repository"
-  git add .final_builds
+  if [ -d .final_builds ];then
+    git add .final_builds
+  fi
   git add releases/${name}/index.yml
   git add releases/${name}/${name}-${version}.yml
   git commit -a -m "cutting release ${version}"
@@ -109,8 +111,7 @@ if [ "${release}" == "true" ]; then
   git push ${remote_repo} HEAD:${INPUT_TARGET_BRANCH} --follow-tags # Push branch and tag
 fi
 
-
-if [ $INPUT_DEBUG -ne 0 ];then
+if [ "$INPUT_DEBUG" -ne 0 ];then
   echo "Current files after release creation:"
   ls -l
 fi

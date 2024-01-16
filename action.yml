@@ -3,6 +3,14 @@ name: "bosh-releaser"
 description: "Creates new version of bosh release"
 
 inputs:
+  repository:
+    description: "Github repository used to publish releases."
+    required: false
+    default: ${GITHUB_REPOSITORY}
+  token:
+    description: "Github token used to push changes after releasing"
+    required: false
+    default: ${GITHUB_TOKEN}
   target_branch:
     description: "Branch name to push release commit"
     required: false

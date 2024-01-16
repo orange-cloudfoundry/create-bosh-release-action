@@ -18,6 +18,8 @@ fi
 
 echo "*** Inputs ***"
 echo "  dir: $INPUT_DIR"
+echo "  repository: $INPUT_REPOSITORY"
+echo "  token: **redacted**"
 echo "  override_existing: $INPUT_OVERRIDE_EXISTING"
 echo "  tag_name: $INPUT_TAG_NAME"
 echo "  target_branch: $INPUT_TARGET_BRANCH"

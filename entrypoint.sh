@@ -15,16 +15,24 @@ elif [[ "$GITHUB_REF" == refs/pull/* ]]; then
   version=pr-${pull_number}
   release=false
 fi
+
+echo "*** Inputs ***"
+echo "  dir: $INPUT_DIR"
+echo "  override_existing: $INPUT_OVERRIDE_EXISTING"
+echo "  tag_name: $INPUT_TAG_NAME"
+echo "  target_branch: $INPUT_TARGET_BRANCH"
+
+if [[ "$INPUT_DIR" != "." ]];then
+  cd $INPUT_DIR # We ensure we are in the right directory
+fi
+
 echo "Current dir: $PWD"
 echo "Current files:"
 ls -l
 
-if [[ "$DIR" != "." ]];then
-  cd $DIR # We ensure we are in the right directory
-fi
 
 PUSH_OPTIONS=""
-if [ "${OVERRIDE_EXISTING}" == "true" ];then
+if [ "${INPUT_OVERRIDE_EXISTING}" == "true" ];then
   PUSH_OPTIONS="$PUSH_OPTIONS --force"
 fi
 
@@ -39,6 +47,8 @@ remote_repo="https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@${GITHUB_SERVER_URL#https:/
 git config --global user.name "actions/bosh-packager@v2"
 git config --global user.email "<>"
 git config --global --add safe.directory /github/workspace
+git config --global --add safe.directory /github/workspace/create-bosh-release-action-test-boshrelease
+git --no-pager config --global --list
 
 if [ "${release}" == "true" ]; then
   # remove existing release if any
@@ -81,7 +91,7 @@ if [ "${release}" == "true" ]; then
   git tag -a -m "cutting release ${version}" ${version} $PUSH_OPTIONS
 
   git pull --rebase ${remote_repo}
-  if [ "${OVERRIDE_EXISTING}" == "true" ] && git rev-parse "$version" >/dev/null 2>&1; then
+  if [ "${INPUT_OVERRIDE_EXISTING}" == "true" ] && git rev-parse "$version" >/dev/null 2>&1; then
     # Delete any existing release with same tag. Ignore push failure if no tag exists.
     git push --delete ${remote_repo} ${version}
   fi

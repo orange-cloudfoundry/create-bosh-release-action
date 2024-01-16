@@ -21,16 +21,25 @@ echo "  dir: $INPUT_DIR"
 echo "  override_existing: $INPUT_OVERRIDE_EXISTING"
 echo "  tag_name: $INPUT_TAG_NAME"
 echo "  target_branch: $INPUT_TARGET_BRANCH"
+echo "  debug: $INPUT_DEBUG"
 
 if [[ "$INPUT_DIR" != "." ]];then
   cd $INPUT_DIR # We ensure we are in the right directory
   git config --global --add safe.directory /github/workspace/$INPUT_DIR
 fi
 
-echo "Current dir: $PWD"
-echo "Current files:"
-ls -l
+if [ -n "$INPUT_TAG_NAME" ];then
+  echo "Tag_name detected. Overriding version name and enabling final release"
+  version=$INPUT_TAG_NAME
+  release=true
+fi
 
+
+if [ $INPUT_DEBUG -ne 0 ];then
+  echo "Current files before release creation:"
+  echo "Current files:"
+  ls -l
+fi
 
 PUSH_OPTIONS=""
 if [ "${INPUT_OVERRIDE_EXISTING}" == "true" ];then
@@ -99,6 +108,13 @@ if [ "${release}" == "true" ]; then
 
   git push ${remote_repo} HEAD:${INPUT_TARGET_BRANCH} --follow-tags # Push branch and tag
 fi
+
+
+if [ $INPUT_DEBUG -ne 0 ];then
+  echo "Current files after release creation:"
+  ls -l
+fi
+
 
 # make asset readable outside docker image
 chmod 644 ${name}-${version}.tgz

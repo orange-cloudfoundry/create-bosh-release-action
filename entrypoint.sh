@@ -39,7 +39,6 @@ fi
 
 if [ "$INPUT_DEBUG" -ne 0 ];then
   echo "Current files before release creation:"
-  echo "Current files:"
   ls -l
 fi
 
@@ -53,7 +52,7 @@ if [ "${name}" = "null" ]; then
   name=$(yq -r .name config/final.yml)
 fi
 
-remote_repo="https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@${GITHUB_SERVER_URL#https://}/${GITHUB_REPOSITORY}.git"
+remote_repo="https://${GITHUB_ACTOR}:${INPUT_TOKEN}@${GITHUB_SERVER_URL#https://}/${INPUT_REPOSITORY}.git"
 
 # configure git
 git config --global user.name "actions/bosh-packager@v2"

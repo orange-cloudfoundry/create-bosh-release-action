@@ -48,6 +48,7 @@ jobs:
         id: test_final_release
         uses: ./create-bosh-release-action/ # uses: ./.github/actions/my-private-repo/my-action #https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-using-an-action-inside-a-different-private-repository-than-the-workflow
         with:
+          repository: orange-cloudfoundry/create-bosh-release-action-test-boshrelease
           target_branch: main
           dir: create-bosh-release-action-test-boshrelease
           tag_name: "0.1.0"

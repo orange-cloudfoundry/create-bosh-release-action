@@ -6,6 +6,7 @@ set -e
 if [[ "$GITHUB_REF" == refs/tags/* ]]; then
   version=${GITHUB_REF#refs/tags/}
   version=${version#v}
+  tag_version=v${version}
   release=true
 elif [[ "$GITHUB_REF" == refs/heads/* ]]; then
   version=${GITHUB_REF#refs/heads/}
@@ -33,6 +34,8 @@ fi
 if [ -n "$INPUT_TAG_NAME" ];then
   echo "Tag_name detected. Overriding version name and enabling final release"
   version=$INPUT_TAG_NAME
+  version=${version#v}
+  tag_version=v${version}
   release=true
 fi
 
@@ -120,7 +123,7 @@ if [ "${release}" == "true" ]; then
   else
     echo "pushing changes to git repository"
     # Override any existing tag with same version. This may happen if only part of the renovate PRs were merged
-    git tag -a -m "cutting release ${version}" ${version} $PUSH_OPTIONS
+    git tag -a -m "cutting release ${tag_version}" ${tag_version} $PUSH_OPTIONS
     # In case a renovate PR was merged in between, try to rebase prior to pushing
     git pull --rebase ${remote_repo}
     if [[ "${INPUT_OVERRIDE_EXISTING}" == "true" ]]; then

@@ -50,7 +50,7 @@ jobs:
           token: ${{ secrets.CREATE_BOSH_RELEASE_ACTION_TEST_BOSHRELEASE_GIT_TOKEN }}
           target_branch: main
           dir: final-release-creation-test
-          tag_name: "0.1.0"
+          tag_name: "v0.2.0"
           override_existing: "true"
           debug: 1
       - name: Generated final files status - override
@@ -59,15 +59,20 @@ jobs:
           cd final-release-creation-test
           echo "Display final-release-creation-test(create-bosh-release-action-test-boshrelease) git repo status:"
           git status
+          echo "Checking tgz"
+          ls -l create-bosh-release-action-test-boshrelease-0.2.0.tgz 
           echo "List existing tags:"
           git tag --list
           cd ..
       - name: Get Next Version
         id: semver-final-release
-        uses: ietf-tools/semver-action@v1
-        with:
-          token: ${{ github.token }}
-          branch: main
+        run: |
+            cd 
+            latest_tag=$(git describe --tags --abbrev=0)
+            major_minor=$(echo $latest_tag|cut -d'.' -f1-2)
+            patch=$(echo $latest_tag|cut -d'.' -f3)
+            next_patch=$((patch + 1))
+            echo "nextVersion=${major_minor}.$next_patch" >> "$GITHUB_ENV"
       - name: Test final release creation new tag
         id: test_final_new_release
         uses: ./create-bosh-release-action/ # uses: ./.github/actions/my-private-repo/my-action #https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-using-an-action-inside-a-different-private-repository-than-the-workflow
@@ -76,15 +81,20 @@ jobs:
           token: ${{ secrets.CREATE_BOSH_RELEASE_ACTION_TEST_BOSHRELEASE_GIT_TOKEN }}
           target_branch: main
           dir: final-release-creation-test
-          tag_name: "${{ steps.semver-final-release.outputs.nextStrict }}"
+          tag_name: "${{ steps.semver-final-release.env.nextVersion }}"
           override_existing: "false"
           debug: 1
       - name: Generated final files status - new
+        env:
+          NEXT_VERSION: "${{ steps.semver-final-release.env.nextVersion }}"
         run: |
           ls -lrt
           cd final-release-creation-test
           echo "Display final-release-creation-test(create-bosh-release-action-test-boshrelease) git repo status:"
           git status
+          echo "Checking tgz"
+          expected_version=${NEXT_VERSION#v}
+          ls -l create-bosh-release-action-test-boshrelease-$expected_version.tgz
           echo "List existing tags:"
           git tag --list
           cd ..

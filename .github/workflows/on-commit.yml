@@ -24,14 +24,7 @@ jobs:
           token: ${{ secrets.CREATE_BOSH_RELEASE_ACTION_TEST_BOSHRELEASE_GIT_TOKEN }}
 
           path: ./create-bosh-release-action-test-boshrelease
-#      - name: Setup tests
-#        id: setup_tests
-#        run: |
-#          du -a
-#          git config --global --add safe.directory /github/workspace/create-bosh-release-action-test-boshrelease
-
-#          git --no-pager config --global --list
-      - name: Test dev release
+      - name: Test dev release creation
         id: test_dev_release
         uses: ./create-bosh-release-action/ # uses: ./.github/actions/my-private-repo/my-action #https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-using-an-action-inside-a-different-private-repository-than-the-workflow
         with:
@@ -48,7 +41,7 @@ jobs:
           #echo "Cleanup generated files"
           #git clean -fdx
           cd ..
-      - name: Test final release
+      - name: Test final release creation
         id: test_final_release
         uses: ./create-bosh-release-action/ # uses: ./.github/actions/my-private-repo/my-action #https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-using-an-action-inside-a-different-private-repository-than-the-workflow
         with:

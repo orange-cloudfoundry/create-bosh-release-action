@@ -63,16 +63,19 @@ jobs:
           ls -l create-bosh-release-action-test-boshrelease-0.2.0.tgz 
           echo "List existing tags:"
           git tag --list
+          echo "Ensure tag exist
+          git tag --list|grep -E "^v0.2.0$"
           cd ..
       - name: Get Next Version
         id: semver-final-release
         run: |
-            cd 
+            cd create-bosh-release-action-test-boshrelease
             latest_tag=$(git describe --tags --abbrev=0)
             major_minor=$(echo $latest_tag|cut -d'.' -f1-2)
             patch=$(echo $latest_tag|cut -d'.' -f3)
             next_patch=$((patch + 1))
             echo "nextVersion=${major_minor}.$next_patch" >> "$GITHUB_ENV"
+          cd ..
       - name: Test final release creation new tag
         id: test_final_new_release
         uses: ./create-bosh-release-action/ # uses: ./.github/actions/my-private-repo/my-action #https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-using-an-action-inside-a-different-private-repository-than-the-workflow
@@ -97,4 +100,6 @@ jobs:
           ls -l create-bosh-release-action-test-boshrelease-$expected_version.tgz
           echo "List existing tags:"
           git tag --list
+          echo "Ensure tag exist"
+          git tag --list|grep -E "^$NEXT_VERSION$"
           cd ..

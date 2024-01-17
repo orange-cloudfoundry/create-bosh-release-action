@@ -68,6 +68,7 @@ git --no-pager config --global --list
 # Having a single amended commit makes it easier to inspect last commit
 # See https://superuser.com/a/360986/299481 for details of the bash array syntax
 NEXT_GIT_COMMIT_FLAGS=(-m "cutting release ${version}")
+FIRST_FINAL_RELEASE="false"
 if [ "${release}" == "true" ]; then
   # remove existing release if any
   if [ -f releases/"${name}"/"${name}"-"${version}".yml ]; then
@@ -78,6 +79,8 @@ if [ "${release}" == "true" ]; then
     git add releases/${name}/${name}-${version}.yml releases/${name}/index.yml
     git commit -a "${NEXT_GIT_COMMIT_FLAGS[@]}"
     NEXT_GIT_COMMIT_FLAGS=(--amend -m "cutting release ${version} overriding existing one")
+  else
+    FIRST_FINAL_RELEASE="true"
   fi
 fi
 
@@ -114,12 +117,11 @@ if [ "${release}" == "true" ]; then
 
   echo "Inspecting staged files to skip commit and push if there is no blob changes in the release"
   git show HEAD ${RELEASE_FILE_NAME}
-  if ! git show HEAD ${RELEASE_FILE_NAME} | grep sha1 ; then
+  if [[ $FIRST_FINAL_RELEASE == false ]] && ! git show HEAD ${RELEASE_FILE_NAME} | grep sha1 ; then
     echo "No sha1 found in diff in ${RELEASE_FILE_NAME}. No blob were modified. Skipping the git push"
     ls -al ${RELEASE_FILE_NAME}
     cat ${RELEASE_FILE_NAME}
     NEED_GITHUB_RELEASE="false"
-
   else
     echo "pushing changes to git repository"
     # Override any existing tag with same version. This may happen if only part of the renovate PRs were merged

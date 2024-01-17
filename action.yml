@@ -3,6 +3,14 @@ name: "bosh-releaser"
 description: "Creates new version of bosh release"
 
 inputs:
+  repository:
+    description: "Github repository used to publish releases."
+    required: false
+    default: ${{github.repository}}
+  token:
+    description: "Github token used to push changes after releasing"
+    required: false
+    default: ${{github.token}}
   target_branch:
     description: "Branch name to push release commit"
     required: false
@@ -17,11 +25,16 @@ inputs:
   dir:
     description: "Release directory path if not current working directory (default: .)"
     default: "."
+  debug:
+    description: "Set to 1 to enable debug mode"
+    default: 0
 outputs:
   file:
     description: "generated bosh release filename"
   version:
     description: "version of the generated bosh release"
+  need_gh_release:
+    description: "Do we need to create a github release associated to this bosh release"
 
 runs:
   using: "docker"

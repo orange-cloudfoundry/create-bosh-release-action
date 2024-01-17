@@ -5,17 +5,104 @@ on:
   push:
 jobs:
   build:
+    name: "Test dev and final release creation"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
+        id: checkout_repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          path: ./create-bosh-release-action
+      - name: Checkout repository test repo
         id: checkout_test_repo
         uses: actions/checkout@v4
         with:
           repository: 'orange-cloudfoundry/create-bosh-release-action-test-boshrelease'
           fetch-depth: 0
-
-      - name: Test dev release
+#          ref: v1.0
+          token: ${{ secrets.CREATE_BOSH_RELEASE_ACTION_TEST_BOSHRELEASE_GIT_TOKEN }}
+          path: ./create-bosh-release-action-test-boshrelease
+      - name: Setup test
+        run: |
+          git clone create-bosh-release-action-test-boshrelease dev-release-creation-test
+          git clone create-bosh-release-action-test-boshrelease final-release-creation-test
+      - name: Test dev release creation
         id: test_dev_release
-        uses: orange-cloudfoundry/create-bosh-release-action@master
+        uses: ./create-bosh-release-action/ # uses: ./.github/actions/my-private-repo/my-action #https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-using-an-action-inside-a-different-private-repository-than-the-workflow
         with:
           target_branch: main
+          dir: dev-release-creation-test
+      - name: Generated test dev files status
+        run: |
+          ls -lrt
+          cd dev-release-creation-test
+          echo "Display dev-release-creation-test(create-bosh-release-action-test-boshrelease) git repo status:"
+          git status
+          echo "List existing tags:"
+          git tag --list
+          cd ..
+      - name: Test final release creation existing tag
+        id: test_final_release
+        uses: ./create-bosh-release-action/ # uses: ./.github/actions/my-private-repo/my-action #https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-using-an-action-inside-a-different-private-repository-than-the-workflow
+        with:
+          repository: orange-cloudfoundry/create-bosh-release-action-test-boshrelease
+          token: ${{ secrets.CREATE_BOSH_RELEASE_ACTION_TEST_BOSHRELEASE_GIT_TOKEN }}
+          target_branch: main
+          dir: final-release-creation-test
+          tag_name: "v0.3.0"
+          override_existing: "true"
+          debug: 1
+      - name: Generated final files status - override
+        run: |
+          ls -lrt
+          cd final-release-creation-test
+          echo "Display final-release-creation-test(create-bosh-release-action-test-boshrelease) git repo status:"
+          git status
+          echo "Checking tgz"
+          ls -l create-bosh-release-action-test-boshrelease-0.3.0.tgz 
+          echo "List existing tags:"
+          git tag --list
+          echo "Ensure tag exist v0.3.0"
+          git tag --list|grep -E "^v0.3.0$"
+          cd ..
+      - name: Get Next Version
+        id: semver-final-release
+        run: |
+          cd create-bosh-release-action-test-boshrelease
+          latest_tag=$(git describe --tags --abbrev=0)
+          echo "latest tag found: $latest_tag"
+          major_minor=$(echo $latest_tag|cut -d'.' -f1-2)
+          patch=$(echo $latest_tag|cut -d'.' -f3)
+          next_patch=$((patch + 1))
+          nextVersion=${major_minor}.$next_patch
+          echo "nextVersion: $nextVersion"
+          echo "nextVersion=$nextVersion" >> "$GITHUB_OUTPUT"
+          cd ..
+      - name: Test final release creation new tag
+        id: test_final_new_release
+        uses: ./create-bosh-release-action/ # uses: ./.github/actions/my-private-repo/my-action #https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-using-an-action-inside-a-different-private-repository-than-the-workflow
+        with:
+          repository: orange-cloudfoundry/create-bosh-release-action-test-boshrelease
+          token: ${{ secrets.CREATE_BOSH_RELEASE_ACTION_TEST_BOSHRELEASE_GIT_TOKEN }}
+          target_branch: main
+          dir: final-release-creation-test
+          tag_name: "${{ steps.semver-final-release.outputs.nextVersion }}"
+          override_existing: "false"
+          debug: 1
+      - name: Generated final files status - new
+        env:
+          NEXT_VERSION: "${{ steps.semver-final-release.outputs.nextVersion }}"
+        run: |
+          ls -lrt
+          cd final-release-creation-test
+          echo "Display final-release-creation-test(create-bosh-release-action-test-boshrelease) git repo status:"
+          git status
+          echo "Checking tgz"
+          expected_version=${NEXT_VERSION#v}
+          ls -l create-bosh-release-action-test-boshrelease-$expected_version.tgz
+          echo "List existing tags:"
+          git tag --list
+          echo "Ensure tag exist"
+          git tag --list|grep -E "^$NEXT_VERSION$"
+          cd ..

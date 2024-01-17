@@ -72,11 +72,14 @@ if [ "${release}" == "true" ]; then
     yq -r "{ \"builds\": (.builds | with_entries(select(.value.version != \"${version}\"))), \"format-version\": .[\"format-version\"]}" < releases/${name}/index.yml > tmp
     mv tmp releases/"${name}"/index.yml
     rm -f releases/"${name}"/"${name}"-"${version}".yml
-    git commit -a -m "reset release ${version}"
+    git add releases/${name}/${name}-${version}.yml releases/${name}/index.yml
+    git commit -a "${NEXT_GIT_COMMIT_FLAGS[@]}"
+    NEXT_GIT_COMMIT_FLAGS=(--amend -m "cutting release ${version} overriding existing one")
   fi
 fi
 
 if [ -n "${AWS_BOSH_ACCES_KEY_ID}" ]; then
+  echo "Generating AWS config"
   cat - > config/private.yml <<EOS
 ---
 blobstore:
@@ -90,30 +93,44 @@ fi
 
 echo "creating bosh release: ${name}-${version}.tgz"
 if [ "${release}" == "true" ]; then
-  bosh create-release --force --final --version="${version}" --tarball="${name}-${version}".tgz
+  bosh create-release --final --version="${version}" --tarball="${name}-${version}".tgz --force # --force is required to ignore dev_releases/ dir, created during final release
 else
   bosh create-release --force --timestamp-version --tarball="${name}-${version}".tgz
 fi
-
+NEED_GITHUB_RELEASE="false"
 if [ "${release}" == "true" ]; then
   echo "pushing changes to git repository"
   if [ -d .final_builds ];then
     git add .final_builds
   fi
   git add releases/${name}/index.yml
-  git add releases/${name}/${name}-${version}.yml
-  git commit -a -m "cutting release ${version}"
+  RELEASE_FILE_NAME=releases/${name}/${name}-${version}.yml
+  git add ${RELEASE_FILE_NAME}
+  # Note: if we had removed the previous release, then we amend the commit.
+  git commit -a "${NEXT_GIT_COMMIT_FLAGS[@]}"
 
-  # Override any existing tag with same version. This may happen if only part of the renovate PRs were merged
-  git tag -a -m "cutting release ${version}" ${version} $PUSH_OPTIONS
+  echo "Inspecting staged files to skip commit and push if there is no blob changes in the release"
+  git show HEAD ${RELEASE_FILE_NAME}
+  if ! git show HEAD ${RELEASE_FILE_NAME} | grep sha1 ; then
+    echo "No sha1 found in diff in ${RELEASE_FILE_NAME}. No blob were modified. Skipping the git push"
+    ls -al ${RELEASE_FILE_NAME}
+    cat ${RELEASE_FILE_NAME}
+    NEED_GITHUB_RELEASE="false"
 
-  git pull --rebase ${remote_repo}
-  if [[ "${INPUT_OVERRIDE_EXISTING}" == "true" ]]; then
-    # Delete any existing release with same tag. Ignore push failure if no tag exists.
-    ! git push --delete ${remote_repo} ${version}
+  else
+    echo "pushing changes to git repository"
+    # Override any existing tag with same version. This may happen if only part of the renovate PRs were merged
+    git tag -a -m "cutting release ${version}" ${version} $PUSH_OPTIONS
+    # In case a renovate PR was merged in between, try to rebase prior to pushing
+    git pull --rebase ${remote_repo}
+    if [[ "${INPUT_OVERRIDE_EXISTING}" == "true" ]]; then
+      # Delete any existing release with same tag. Ignore push failure if no tag exists.
+      ! git push --delete ${remote_repo} ${version}
+    fi
+
+    git push ${remote_repo} HEAD:${INPUT_TARGET_BRANCH} --follow-tags # Push branch and tag
+    NEED_GITHUB_RELEASE="true"
   fi
-
-  git push ${remote_repo} HEAD:${INPUT_TARGET_BRANCH} --follow-tags # Push branch and tag
 fi
 
 if [ "$INPUT_DEBUG" -ne 0 ];then
@@ -125,7 +142,7 @@ fi
 # make asset readable outside docker image
 chmod 644 ${name}-${version}.tgz
 # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#environment-files
-echo "file=${name}-${version}.tgz" >> $GITHUB_OUTPUT
-echo "version=${version}"          >> $GITHUB_OUTPUT
-echo "need_gh_release=${NEED_GITHUB_RELEASE}"   >> $GITHUB_OUTPUT
+echo "file=${name}-${version}.tgz"            >> $GITHUB_OUTPUT
+echo "version=${version}"                     >> $GITHUB_OUTPUT
+echo "need_gh_release=${NEED_GITHUB_RELEASE}" >> $GITHUB_OUTPUT
 

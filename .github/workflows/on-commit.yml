@@ -53,7 +53,14 @@ jobs:
           tag_name: "v0.3.0"
           override_existing: "true"
           debug: 1
-      - name: Generated final files status - override
+      - name: Assert final files status - override
+        env:
+          OUTPUT_VERSION: "${{ steps.test_final_release.outputs.version }}"
+          OUTPUT_TAGGED_VERSION: "${{ steps.test_final_release.outputs.tagged_version }}"
+          OUTPUT_NEED_GH_RELEASE: "${{ steps.test_final_release.outputs.need_gh_release }}"
+          EXPECTED_OUTPUT_VERSION: "0.3.0"
+          EXPECTED_OUTPUT_TAGGED_VERSION: "v0.3.0"
+          EXPECTED_OUTPUT_NEED_GH_RELEASE: "false"
         run: |
           ls -lrt
           cd final-release-creation-test
@@ -66,6 +73,23 @@ jobs:
           echo "Ensure tag exist v0.3.0"
           git tag --list|grep -E "^v0.3.0$"
           cd ..
+          for o in OUTPUT_VERSION OUTPUT_TAGGED_VERSION OUTPUT_NEED_GH_RELEASE;do           
+            output=$(echo "echo \$$o")
+            output_value=$(eval $output)
+            expected=$(echo "echo \$EXPECTED_$o")
+            expected_value=$(eval $expected)
+            if [[ "$expected_value" != "$output_value" ]];then
+              failure="true"
+              echo "ERROR: $o - expected_value ($expected_value) != output_value ($output_value)"
+            else
+              echo "$o is fine ($expected_value)"
+            fi
+          done
+          if [ "$failure" = "true" ]; then
+            echo "Test failure detected"
+            exit 1
+          fi
+
       - name: Get Next Version
         id: semver-final-release
         run: |
@@ -76,8 +100,10 @@ jobs:
           patch=$(echo $latest_tag|cut -d'.' -f3)
           next_patch=$((patch + 1))
           nextVersion=${major_minor}.$next_patch
+          nextStrictVersion=${major_minor#v}.$next_patch
           echo "nextVersion: $nextVersion"
           echo "nextVersion=$nextVersion" >> "$GITHUB_OUTPUT"
+          echo "nextStrictVersion=$nextStrictVersion" >> "$GITHUB_OUTPUT"
           cd ..
       - name: Test final release creation new tag
         id: test_final_new_release
@@ -90,9 +116,15 @@ jobs:
           tag_name: "${{ steps.semver-final-release.outputs.nextVersion }}"
           override_existing: "false"
           debug: 1
-      - name: Generated final files status - new
+      - name: Assert final files status - new
         env:
           NEXT_VERSION: "${{ steps.semver-final-release.outputs.nextVersion }}"
+          OUTPUT_VERSION: "${{ steps.test_final_new_release.outputs.version }}"
+          OUTPUT_TAGGED_VERSION: "${{ steps.test_final_new_release.outputs.tagged_version }}"
+          OUTPUT_NEED_GH_RELEASE: "${{ steps.test_final_new_release.outputs.need_gh_release }}"
+          EXPECTED_OUTPUT_VERSION: "${{ steps.semver-final-release.outputs.nextStrictVersion }}"
+          EXPECTED_OUTPUT_TAGGED_VERSION: "${{ steps.semver-final-release.outputs.nextVersion }}"
+          EXPECTED_OUTPUT_NEED_GH_RELEASE: "true"
         run: |
           ls -lrt
           cd final-release-creation-test
@@ -106,3 +138,19 @@ jobs:
           echo "Ensure tag exist"
           git tag --list|grep -E "^$NEXT_VERSION$"
           cd ..
+          for o in OUTPUT_VERSION OUTPUT_TAGGED_VERSION OUTPUT_NEED_GH_RELEASE;do           
+            output=$(echo "echo \$$o")
+            output_value=$(eval $output)
+            expected=$(echo "echo \$EXPECTED_$o")
+            expected_value=$(eval $expected)
+            if [[ "$expected_value" != "$output_value" ]];then
+              failure="true"
+              echo "ERROR: $o - expected_value ($expected_value) != output_value ($output_value)"
+            else
+              echo "$o is fine ($expected_value)"
+            fi
+          done
+          if [ "$failure" = "true" ]; then
+            echo "Test failure detected"
+            exit 1
+          fi

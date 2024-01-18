@@ -63,7 +63,7 @@ fi
 remote_repo="https://${GITHUB_ACTOR}:${INPUT_TOKEN}@${GITHUB_SERVER_URL#https://}/${INPUT_REPOSITORY}.git"
 
 # configure git
-git config --global user.name "actions/bosh-packager@v2"
+git config --global user.name "actions/create-bosh-release@v1"
 git config --global user.email "<>"
 git config --global --add safe.directory /github/workspace
 echo "*** Git global config ***"

@@ -18,27 +18,32 @@ elif [[ "$GITHUB_REF" == refs/pull/* ]]; then
 fi
 
 echo "*** Inputs ***"
+echo "  debug: $INPUT_DEBUG"
 echo "  dir: $INPUT_DIR"
-echo "  repository: $INPUT_REPOSITORY"
-echo "  token: **redacted**"
+echo "  force_version_consistency: $INPUT_FORCE_VERSION_CONSISTENCY"
 echo "  override_existing: $INPUT_OVERRIDE_EXISTING"
+echo "  repository: $INPUT_REPOSITORY"
 echo "  tag_name: $INPUT_TAG_NAME"
 echo "  target_branch: $INPUT_TARGET_BRANCH"
-echo "  debug: $INPUT_DEBUG"
+echo "  token: **redacted**"
 
 if [[ "$INPUT_DIR" != "." ]];then
   cd $INPUT_DIR # We ensure we are in the right directory
   git config --global --add safe.directory /github/workspace/$INPUT_DIR
 fi
-
+tagged_version=""
 if [ -n "$INPUT_TAG_NAME" ];then
-  echo "Tag_name detected. Overriding version name and enabling final release"
+  echo "Tag_name detected. Overriding version name and enabling final release. And enforcing 'v' prefix"
   version=$INPUT_TAG_NAME
   version=${version#v}
-  tag_version=v${version}
+  tagged_version=v${version}
   release=true
 fi
 
+if [ "$INPUT_FORCE_VERSION_CONSISTENCY" == "true" ];then
+  echo "Ensure version and tagged_version are identical"
+  tagged_version=${version}
+fi
 
 if [ "$INPUT_DEBUG" -ne 0 ];then
   echo "Current files before release creation:"
@@ -125,7 +130,7 @@ if [ "${release}" == "true" ]; then
   else
     echo "pushing changes to git repository"
     # Override any existing tag with same version. This may happen if only part of the renovate PRs were merged
-    git tag -a -m "cutting release ${tag_version}" ${tag_version} $PUSH_OPTIONS
+    git tag -a -m "cutting release ${tagged_version}" ${tagged_version} $PUSH_OPTIONS
     # In case a renovate PR was merged in between, try to rebase prior to pushing
     git pull --rebase ${remote_repo}
     if [[ "${INPUT_OVERRIDE_EXISTING}" == "true" ]]; then
@@ -149,5 +154,6 @@ chmod 644 ${name}-${version}.tgz
 # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#environment-files
 echo "file=${name}-${version}.tgz"            >> $GITHUB_OUTPUT
 echo "version=${version}"                     >> $GITHUB_OUTPUT
+echo "tagged_version=${tagged_version}"       >> $GITHUB_OUTPUT
 echo "need_gh_release=${NEED_GITHUB_RELEASE}" >> $GITHUB_OUTPUT
 

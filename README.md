@@ -29,6 +29,13 @@ default: `.`
 Set to 1 to enable debug mode
 
 default: 0
+
+### `force_version_consistency`
+Ensure output tagged_version and version are always identical, using version as source. Otherwise, 'tagged_version' starts with 'v' prefix.Default: false.
+
+required: `false`
+default: `false`
+
 ## Outputs
 
 ### `file`
@@ -43,6 +50,9 @@ version of the generated bosh release
 
 Do we need to create a GitHub release associated to this bosh release
 
+### `tagged_version`
+
+Only set when a final release is created, otherwise it is empty. It matches 'version', but always starts with 'v'.
 ## Example usage
 
 ```

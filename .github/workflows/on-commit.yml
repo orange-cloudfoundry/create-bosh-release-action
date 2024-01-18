@@ -3,6 +3,8 @@ name: on-commit
 on:
   workflow_dispatch:
   push:
+    branches-ignore:
+      - "v[0-9]*" # ignore build on tag branch
 jobs:
   build:
     name: "Test dev and final release creation"

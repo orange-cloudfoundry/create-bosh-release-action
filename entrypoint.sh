@@ -4,14 +4,17 @@ set -e
 
 # extract info
 if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+  echo "tag detected: $GITHUB_REF"
   version=${GITHUB_REF#refs/tags/}
   version=${version#v}
   tag_version=v${version}
   release=true
 elif [[ "$GITHUB_REF" == refs/heads/* ]]; then
-  version=${GITHUB_REF#refs/heads/}
+  echo "Head ref detected: $GITHUB_REF"
+  version=$(echo ${GITHUB_REF#refs/heads/}|tr '/' '_') # Replace / with _ to support PR like renovate/xxxxx
   release=false
 elif [[ "$GITHUB_REF" == refs/pull/* ]]; then
+  echo "PR detected: $GITHUB_REF"
   pull_number=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
   version=pr-${pull_number}
   release=false
@@ -102,7 +105,7 @@ else
   echo "::warning::AWS_BOSH_ACCES_KEY_ID not set, skipping config/private.yml"
 fi
 
-echo "creating bosh release: ${name}-${version}.tgz"
+echo "creating bosh release (name: ${name} - version: ${version}): ${name}-${version}.tgz"
 if [ "${release}" == "true" ]; then
   bosh create-release --final --version="${version}" --tarball="${name}-${version}".tgz --force # --force is required to ignore dev_releases/ dir, created during final release
 else

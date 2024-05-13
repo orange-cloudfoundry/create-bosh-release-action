@@ -8,7 +8,7 @@ RUN curl -sL https://github.com/cloudfoundry/bosh-cli/releases/download/v${BOSH_
   install /dev/stdin /usr/local/bin/bosh && bosh --version
 
 # renovate: datasource=github-releases depName=carvel-dev/vendir
-ENV VENDIR_VERSION=0.40.0
+ENV VENDIR_VERSION=0.40.1
 RUN curl -sL https://github.com/carvel-dev/vendir/releases/download/v${VENDIR_VERSION}/vendir-linux-amd64 | \
   install /dev/stdin /usr/local/bin/vendir && vendir -v
 

@@ -13,7 +13,7 @@ RUN curl -sL https://github.com/carvel-dev/vendir/releases/download/v${VENDIR_VE
   install /dev/stdin /usr/local/bin/vendir && vendir -v
 
 # renovate: datasource=github-releases depName=mikefarah/yq
-ENV YQ_VERSION="4.44.5"
+ENV YQ_VERSION="4.45.1"
 RUN echo "Installing yq version ${YQ_VERSION}" ; \
     curl -L "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64" -o /usr/local/bin/yq && \
     chmod +rx /usr/local/bin/yq && \

@@ -13,7 +13,7 @@
   packageRules: [
     {
       description: "Add common labels",
-      matchDepPatterns: ["*"],
+      matchDepNames: ["*"],
       addLabels: [
         // See full list of fields available at https://docs.renovatebot.com/templates/#other-available-fields
         "datasource/{{datasource}}",
@@ -27,8 +27,9 @@
       prBodyNotes: ["To easily extract checksums: curl -sSL https://github.com/mikefarah/yq/releases/download/v{{version}}/checksums |grep \"yq_linux_amd64 \"|cut -d' ' -f37"]
     }
   ],
-  regexManagers: [
+  customManagers: [
     {
+      customType: 'regex',
       fileMatch: ["Dockerfile$"],
       "matchStrings": [
         // For dockerfile: https://regex101.com/r/iJfnnL/1

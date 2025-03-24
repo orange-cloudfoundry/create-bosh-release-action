@@ -101,8 +101,18 @@ blobstore:
     access_key_id: ${AWS_BOSH_ACCES_KEY_ID}
     secret_access_key: ${AWS_BOSH_SECRET_ACCES_KEY}
 EOS
+elif [ -n "${GCS_JSON_KEY}" ]; then
+  echo "Generating GCS config"
+  cat - > config/private.yml <<EOS
+---
+blobstore:
+  options:
+    credentials_source: static
+    json_key: |
+      ${GCS_JSON_KEY}
+EOS
 else
-  echo "::warning::AWS_BOSH_ACCES_KEY_ID not set, skipping config/private.yml"
+  echo "::warning::AWS_BOSH_ACCES_KEY_ID/AWS_BOSH_SECRET_ACCES_KEY, nor GCS_JSON_KEY set, skipping config/private.yml"
 fi
 
 echo "creating bosh release (name: ${name} - version: ${version}): ${name}-${version}.tgz"

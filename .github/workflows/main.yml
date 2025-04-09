@@ -28,7 +28,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Publish to DockerHub
-        uses: docker/build-push-action@ca877d9245402d1537745e0e356eab47c3520991 # v6.0.0
+        uses: docker/build-push-action@c382f710d39a5bb4e430307530a720f50c2d3318 # v6.0.0
         with:
           push: true
           tags: ${{ steps.docker_meta.outputs.tags }}

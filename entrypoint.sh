@@ -147,11 +147,29 @@ if [ "${release}" == "true" ]; then
     # In case a renovate PR was merged in between, try to rebase prior to pushing
     git pull --rebase ${remote_repo}
     if [[ "${INPUT_OVERRIDE_EXISTING}" == "true" ]]; then
-      # Delete any existing release with same tag. Ignore push failure if no tag exists.
+      echo "Delete any existing release with same tag. Ignore push failure if no tag exists."
       ! git push --delete ${remote_repo} ${version}
     fi
 
-    git push ${remote_repo} HEAD:${INPUT_TARGET_BRANCH} --follow-tags # Push branch and tag
+    # Try to push up to 3 times if it fails
+    max_retries=3
+    count=0
+    success=false
+    while [[ $count -lt $max_retries ]]; do
+      if git push ${remote_repo} HEAD:${INPUT_TARGET_BRANCH} --follow-tags; then
+        success=true
+        break
+      else
+        echo "git push failed. Attempt $((count+1))/$max_retries. Trying to rebase and retry..."
+        git pull --rebase ${remote_repo}
+        ((count++))
+      fi
+    done
+
+    if [[ "$success" == "false" ]]; then
+      echo "git push failed after $max_retries attempts."
+      exit 1
+    fi
     NEED_GITHUB_RELEASE="true"
   fi
 fi

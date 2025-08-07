@@ -47,6 +47,7 @@ set -x
 # Usage: renovate [options] [repositories...]
 docker run \
     --rm \
+    -u $(id -u):$(id -g) \
     -e LOG_LEVEL="$LOG_LEVEL" \
     -e RENOVATE_TOKEN="$GITHUB_COM_TOKEN" \
     -e GITHUB_COM_TOKEN="$GITHUB_COM_TOKEN" \

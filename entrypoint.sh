@@ -123,7 +123,7 @@ else
 fi
 NEED_GITHUB_RELEASE="false"
 if [ "${release}" == "true" ]; then
-  echo "pushing changes to git repository"
+  echo "adding generated release files to git"
   if [ -d .final_builds ];then
     git add .final_builds
   fi
@@ -138,12 +138,15 @@ if [ "${release}" == "true" ]; then
   if [[ $FIRST_FINAL_RELEASE == false ]] && ! git show HEAD ${RELEASE_FILE_NAME} | grep sha1 ; then
     echo "No sha1 found in diff in ${RELEASE_FILE_NAME}. No blob were modified. Skipping the git push"
     ls -al ${RELEASE_FILE_NAME}
+    echo " --- Dump ${RELEASE_FILE_NAME} content ---"
     cat ${RELEASE_FILE_NAME}
+    echo " --- End dump of ${RELEASE_FILE_NAME} ---"
     NEED_GITHUB_RELEASE="false"
   else
-    echo "pushing changes to git repository"
+    echo "tagging release ${tagged_version}"
     # Override any existing tag with same version. This may happen if only part of the renovate PRs were merged
     git tag -a -m "cutting release ${tagged_version}" ${tagged_version} $PUSH_OPTIONS
+    echo "pushing changes to git repository"
     # In case a renovate PR was merged in between, try to rebase prior to pushing
     git pull --rebase ${remote_repo}
     if [[ "${INPUT_OVERRIDE_EXISTING}" == "true" ]]; then

@@ -1,7 +1,7 @@
 #!/bin/bash
-readonly base_dir_dir="$(realpath $0|xargs dirname)"
+readonly base_dir="$(realpath $0|xargs dirname)"
 
-GIT_REPO="$base_dir_dir"
+GIT_REPO="$base_dir"
 LOG_LEVEL="${LOG_LEVEL:-debug}"
 RENOVATE_ENABLED_MANAGERS="${RENOVATE_ENABLED_MANAGERS:-""}"
 RENOVATE_INCLUDE_PATHS="${RENOVATE_INCLUDE_PATHS:-""}"
@@ -16,11 +16,7 @@ fi
 
 echo "Set LOG_LEVEL to manage log level. Default 'debug'.Current Log level: <$LOG_LEVEL>"
 echo "Set RENOVATE_ENABLED_MANAGERS to restrict active managers. Current RENOVATE_ENABLED_MANAGERS: <$RENOVATE_ENABLED_MANAGERS> #Empty means all managers are enabled"
-#export RENOVATE_ENABLED_MANAGERS=flux
 echo "Set RENOVATE_INCLUDE_PATHS to restrict renovate scan as a string holding a json array of strings. Current RENOVATE_INCLUDE_PATHS: <$RENOVATE_INCLUDE_PATHS> #Empty means scan all paths"
-
-
-# export RENOVATE_INCLUDE_PATHS='["micro-depls/00-core-connectivity-k8s/k8s-config/manifests/10-harbor-registry-main/**", "shared-operators/k8s-kustomize-bases/00-common/helm-repos/**"]'
 echo "Git repo volume path: $GIT_REPO"
 
 # We need distinct cache whether running in local or github platform
@@ -30,12 +26,12 @@ echo "Renovate cache is mounted from ${CACHED_TMP_RENOVATE}"
 mkdir -p "${CACHED_TMP_RENOVATE}"
 du -sh "${CACHED_TMP_RENOVATE}"
 
-echo "RENOVATE_PLATFORM={RENOVATE_PLATFORM}. Set to github to test pull requests."
+echo "RENOVATE_PLATFORM=${RENOVATE_PLATFORM}. Set to github to test pull requests."
 # https://docs.renovatebot.com/modules/platform/local/
 # > Limitations: Branch creation is not supported
 # See related issue https://github.com/renovatebot/renovate/issues/3609 for further context
 if [[ "${RENOVATE_PLATFORM}" == "github" ]]; then
-  RENOVATE_REPOSITORIES="orange-cloudfoundry/k3s-boshrelease"
+  RENOVATE_REPOSITORIES="orange-cloudfoundry/$GIT_REPO"
   # See https://docs.renovatebot.com/self-hosted-configuration/#dryrun
   RENOVATE_DRY_RUN="${RENOVATE_DRY_RUN:-true}"
   echo "RENOVATE_DRY_RUN=${RENOVATE_DRY_RUN}. Set to false to actually create PRs."

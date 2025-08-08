@@ -7,8 +7,8 @@ RENOVATE_ENABLED_MANAGERS="${RENOVATE_ENABLED_MANAGERS:-""}"
 RENOVATE_INCLUDE_PATHS="${RENOVATE_INCLUDE_PATHS:-""}"
 RENOVATE_PLATFORM="${RENOVATE_PLATFORM:-local}"
 # See https://docs.renovatebot.com/presets-default/#githubcomtokenarg0
-if [ -z "$GITHUB_COM_TOKEN" ];then
-  echo -e "ERROR: missing GitHub token to allow github release version detection. Please set it before running this script, using \n export GITHUB_COM_TOKEN=\"xxx\""
+if [ -z "$GITHUB_TOKEN" ];then
+  echo -e "ERROR: missing GitHub token to allow github release version detection. Please set it before running this script, using \n export GITHUB_TOKEN=\"xxx\""
   exit 1
 fi
 
@@ -27,8 +27,8 @@ echo "Git repo volume path: $GIT_REPO"
 # Otherwise local tries to git update from cache and fails.
 CACHED_TMP_RENOVATE="${CACHED_TMP_RENOVATE:-/tmp/renovate/${RENOVATE_PLATFORM}}"
 echo "Renovate cache is mounted from ${CACHED_TMP_RENOVATE}"
-mkdir -p ${CACHED_TMP_RENOVATE}
-du -sh ${CACHED_TMP_RENOVATE}
+mkdir -p "${CACHED_TMP_RENOVATE}"
+du -sh "${CACHED_TMP_RENOVATE}"
 
 echo "RENOVATE_PLATFORM={RENOVATE_PLATFORM}. Set to github to test pull requests."
 # https://docs.renovatebot.com/modules/platform/local/
@@ -43,21 +43,21 @@ if [[ "${RENOVATE_PLATFORM}" == "github" ]]; then
   RENOVATE_DRY_RUN_OPTS="--dry-run=${RENOVATE_DRY_RUN}"
 fi
 
-set -x
+#set -x
 # Usage: renovate [options] [repositories...]
 docker run \
     --rm \
-    -u $(id -u):$(id -g) \
+    -u "$(id -u)":"$(id -g)" \
     -e LOG_LEVEL="$LOG_LEVEL" \
-    -e RENOVATE_TOKEN="$GITHUB_COM_TOKEN" \
-    -e GITHUB_COM_TOKEN="$GITHUB_COM_TOKEN" \
+    -e RENOVATE_TOKEN="$GITHUB_TOKEN" \
+    -e RENOVATE_GITHUB_COM_TOKEN="$GITHUB_TOKEN" \
     -e RENOVATE_ENABLED_MANAGERS="$RENOVATE_ENABLED_MANAGERS" \
     -e RENOVATE_INCLUDE_PATHS="$RENOVATE_INCLUDE_PATHS" \
-    -v ${CACHED_TMP_RENOVATE}:/tmp/renovate \
+    -v "${CACHED_TMP_RENOVATE}":/tmp/renovate \
     -v "$GIT_REPO:/tmp/local-git-repo" \
     --workdir /tmp/local-git-repo \
     ghcr.io/renovatebot/renovate \
-    --platform=${RENOVATE_PLATFORM} \
+    --platform="${RENOVATE_PLATFORM}" \
     --semantic-commits=disabled \
     ${RENOVATE_DRY_RUN_OPTS} \
     ${RENOVATE_REPOSITORIES}  \

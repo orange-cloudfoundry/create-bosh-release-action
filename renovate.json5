@@ -4,40 +4,46 @@
     'config:best-practices',
     ':disableRateLimiting',
   ],
-  baseBranches: [
+  baseBranchPatterns: [
     // don't run on renovate branches
-    "$default",
+    '$default',
     // See https://docs.renovatebot.com/configuration-options/#basebranches
     // baseBranches supports Regular Expressions that must begin and end with /
   ], //See also possible support for multiple base branches, one per K8S minor version https://docs.renovatebot.com/configuration-options/#basebranches
   packageRules: [
     {
-      description: "Add common labels",
-      matchDepNames: ["*"],
+      description: 'Add common labels',
+      matchDepNames: [
+        '*',
+      ],
       addLabels: [
         // See full list of fields available at https://docs.renovatebot.com/templates/#other-available-fields
-        "datasource/{{datasource}}",
-        "depName/{{depNameSanitized}}",
-        "manager/{{manager}}",
-      ]
+        'datasource/{{datasource}}',
+        'depName/{{depNameSanitized}}',
+        'manager/{{manager}}',
+      ],
     },
     {
       // Add checksums extraction tip to yq packaqe
-      matchDepNames: "mikefarah/yq",
-      prBodyNotes: ["To easily extract checksums: curl -sSL https://github.com/mikefarah/yq/releases/download/v{{version}}/checksums |grep \"yq_linux_amd64 \"|cut -d' ' -f37"]
-    }
+      matchDepNames: 'mikefarah/yq',
+      prBodyNotes: [
+        'To easily extract checksums: curl -sSL https://github.com/mikefarah/yq/releases/download/v{{version}}/checksums |grep "yq_linux_amd64 "|cut -d\' \' -f37',
+      ],
+    },
   ],
   customManagers: [
     {
       customType: 'regex',
-      fileMatch: ["Dockerfile$"],
-      "matchStrings": [
+      managerFilePatterns: [
+        '/^Dockerfile$/',
+      ],
+      matchStrings: [
         // For dockerfile: https://regex101.com/r/iJfnnL/1
-        "datasource=(?<datasource>github-releases) depName=(?<depName>[\\w\\d\\//\\-\\_]+)\\nENV .+_VERSION[\\s*|=]??\\\"?(?<currentValue>[\\w\\d\\/\\-\\.\\_]+)\\\"?\\s*",
+        'datasource=(?<datasource>github-releases) depName=(?<depName>[\\w\\d\\//\\-\\_]+)\\nENV .+_VERSION[\\s*|=]??\\"?(?<currentValue>[\\w\\d\\/\\-\\.\\_]+)\\"?\\s*',
       ],
       // datasourceTemplate: "{{datasource}}", // should not be required as we extract datasource
-      versioningTemplate: "regex:(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)?$",
-      extractVersionTemplate: "^v?(?<version>.*)$"
-    }
-  ]
+      versioningTemplate: 'regex:(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)?$',
+      extractVersionTemplate: '^v?(?<version>.*)$',
+    },
+  ],
 }

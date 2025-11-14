@@ -17,7 +17,7 @@ jobs:
 
       - name: Compute docker tags
         id: docker_meta
-        uses: crazy-max/ghaction-docker-meta@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
+        uses: crazy-max/ghaction-docker-meta@318604b99e75e41977312d83839a89be02ca4893 # v5.9.0
         with:
           images: orangecloudfoundry/create-bosh-release-action
 

@@ -7,7 +7,7 @@ if [[ "$GITHUB_REF" == refs/tags/* ]]; then
   echo "tag detected: $GITHUB_REF"
   version=${GITHUB_REF#refs/tags/}
   version=${version#v}
-  tag_version=v${version}
+  tagged_version=v${version}
   release=true
 elif [[ "$GITHUB_REF" == refs/heads/* ]]; then
   echo "Head ref detected: $GITHUB_REF"
@@ -31,8 +31,8 @@ echo "  target_branch: $INPUT_TARGET_BRANCH"
 echo "  token: **redacted**"
 
 if [[ "$INPUT_DIR" != "." ]];then
-  cd $INPUT_DIR # We ensure we are in the right directory
-  git config --global --add safe.directory /github/workspace/$INPUT_DIR
+  cd "$INPUT_DIR" || exit 1 # We ensure we are in the right directory
+  git config --global --add safe.directory "/github/workspace/$INPUT_DIR"
 fi
 tagged_version=""
 if [ -n "$INPUT_TAG_NAME" ];then
@@ -53,9 +53,9 @@ if [ "$INPUT_DEBUG" -ne 0 ];then
   ls -l
 fi
 
-PUSH_OPTIONS=""
+PUSH_TAG_OPTIONS=""
 if [ "${INPUT_OVERRIDE_EXISTING}" == "true" ];then
-  PUSH_OPTIONS="$PUSH_OPTIONS --force"
+  PUSH_TAG_OPTIONS="--force"
 fi
 
 name=$(yq -r .final_name config/final.yml)
@@ -145,13 +145,13 @@ if [ "${release}" == "true" ]; then
   else
     echo "tagging release ${tagged_version}"
     # Override any existing tag with same version. This may happen if only part of the renovate PRs were merged
-    git tag -a -m "cutting release ${tagged_version}" ${tagged_version} $PUSH_OPTIONS
-    echo "pushing changes to git repository"
+    git tag -a -m "cutting release ${tagged_version}" ${tagged_version} $PUSH_TAG_OPTIONS
+    echo "Prepare push: rebase changes onto ${INPUT_TARGET_BRANCH}"
     # In case a renovate PR was merged in between, try to rebase prior to pushing
-    git pull --rebase ${remote_repo}
+    git pull --rebase "${remote_repo}" "${INPUT_TARGET_BRANCH}"
     if [[ "${INPUT_OVERRIDE_EXISTING}" == "true" ]]; then
       echo "Delete any existing release with same tag. Ignore push failure if no tag exists."
-      ! git push --delete ${remote_repo} ${version}
+      ! git push --delete "${remote_repo}" ${version}
     fi
 
     # Try to push up to 3 times if it fails
@@ -159,12 +159,13 @@ if [ "${release}" == "true" ]; then
     count=0
     success=false
     while [[ $count -lt $max_retries ]]; do
-      if git push ${remote_repo} HEAD:${INPUT_TARGET_BRANCH} --follow-tags; then
+      echo "pushing changes to git repository on branch ${INPUT_TARGET_BRANCH}"
+      if git push ${remote_repo} HEAD:"${INPUT_TARGET_BRANCH}" --follow-tags; then
         success=true
         break
       else
-        echo "git push failed. Attempt $((count+1))/$max_retries. Trying to rebase and retry..."
-        git pull --rebase ${remote_repo}
+        echo "git push failed. Attempt $((count+1))/$max_retries. Trying to rebase onto ${INPUT_TARGET_BRANCH} and retry..."
+        git pull --rebase "${remote_repo}" "${INPUT_TARGET_BRANCH}"
         ((count++))
       fi
     done
@@ -184,7 +185,7 @@ fi
 
 
 # make asset readable outside docker image
-chmod 644 ${name}-${version}.tgz
+chmod 644 "${name}-${version}.tgz"
 # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#environment-files
 echo "file=${name}-${version}.tgz"            >> $GITHUB_OUTPUT
 echo "version=${version}"                     >> $GITHUB_OUTPUT

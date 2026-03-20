@@ -1,4 +1,4 @@
-FROM ruby:alpine@sha256:7d1c4a23da9b3539fdeb5f970950a8fe044a707219e546f12152b84bbd5755d1
+FROM ruby:alpine@sha256:b99166e463d6547bdccb2457cfd8af0d8b37c79d1fd1bee69cafcfd780e4a497
 
 RUN apk add git curl jq bash
 

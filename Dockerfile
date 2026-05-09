@@ -3,7 +3,7 @@ FROM ruby:alpine@sha256:9623b709c5c0c99ac3bf2ca6f1911456338eae46e8344c80a2092a38
 RUN apk add git curl jq bash
 
 # renovate: datasource=github-releases depName=cloudfoundry/bosh-cli
-ENV BOSH_VERSION=7.10.2
+ENV BOSH_VERSION=7.10.5
 RUN curl -sL https://github.com/cloudfoundry/bosh-cli/releases/download/v${BOSH_VERSION}/bosh-cli-${BOSH_VERSION}-linux-amd64 | \
   install /dev/stdin /usr/local/bin/bosh && bosh --version
 
